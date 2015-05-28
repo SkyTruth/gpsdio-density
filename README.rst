@@ -11,7 +11,7 @@ gpsdio density plugin
     :target: https://coveralls.io/r/SkyTruth/gpsdio-density
 
 
-A plugin for `gpsdio <https://github.com/skytruth/gpdsio/>`_ that creates density rasters.
+A CLI plugin for `gpsdio <https://github.com/skytruth/gpdsio/>`_ that creates density rasters.
 
 
 Examples

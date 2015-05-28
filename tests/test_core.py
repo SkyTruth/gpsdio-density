@@ -27,7 +27,7 @@ def test_standard_with_res_and_shape():
                 f.name
             ]
             args += res_shape
-            result = CliRunner().invoke(gpsdio_density.core.rasterize, args)
+            result = CliRunner().invoke(gpsdio_density.core.compute_density, args)
             f.seek(0)
 
             assert result.exit_code is 0

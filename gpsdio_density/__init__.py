@@ -1,12 +1,15 @@
 """
-A plugin for `gpsdio` that rasterizes positional AIS messages.
+A CLI plugin for `gpsdio` that produces a density raster from positional AIS
+messages.
+
+Non-positional messages are automatically ignored.
 """
 
 
 __version__ = '0.1'
 __author__ = 'Kevin Wurster'
 __email__ = 'kevin@skytruth.org'
-__source__ = 'https://github.com/SkyTruth/gpsdio-rasterize'
+__source__ = 'https://github.com/SkyTruth/gpsdio-density'
 __license__ = """
 Copyright 2015 SkyTruth
 
@@ -24,6 +27,3 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-
-
-from .core import rasterize

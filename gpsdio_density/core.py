@@ -134,7 +134,7 @@ def _processor(filepath_meta):
     return data
 
 
-@click.command()
+@click.command(name='density')
 @click.argument('infiles', nargs=-1, required=True)
 @click.argument('outfile', required=True)
 @click.option(
@@ -178,7 +178,7 @@ def _processor(filepath_meta):
     help="Numpy datatype to use for output raster.  (default: int32)"
 )
 @click.pass_context
-def rasterize(ctx, infiles, outfile, creation_options, driver, jobs, bbox,
+def compute_density(ctx, infiles, outfile, creation_options, driver, jobs, bbox,
               shape, res, crs, dtype, nodata):
 
     """
@@ -227,4 +227,4 @@ def rasterize(ctx, infiles, outfile, creation_options, driver, jobs, bbox,
 
 
 if __name__ == '__main__':
-    rasterize()
+    compute_density()
