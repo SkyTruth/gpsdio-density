@@ -54,6 +54,10 @@ setup_args = dict(
         'Topic :: Utilities',
     ],
     description="A plugin for gpsdio for computing AIS density rasters.",
+    entry_points='''
+        [gpsdio.gpsdio_plugins]
+        density=gpsdio_density.core:compute_density
+    ''',
     extras_require={
         'test': ['pytest', 'pytest-cov']
     },
@@ -63,7 +67,7 @@ setup_args = dict(
         'click>=3.0',
         'Numpy>=1.7',
         'affine',
-        'gpsdio'
+        'gpsdio>0.0.2'
     ],
     keywords='AIS GIS remote sensing raster',
     license=license,
