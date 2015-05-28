@@ -48,7 +48,7 @@ setup_args = dict(
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Topic :: Communications',
-        'Topic :: Scientific/Engineering :: '
+        'Topic :: Scientific/Engineering',
         'Topic :: Scientific/Engineering :: GIS',
         'Topic :: Scientific/Engineering :: Information Analysis',
         'Topic :: Utilities',
