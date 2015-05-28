@@ -67,7 +67,7 @@ setup_args = dict(
         'click>=3.0',
         'Numpy>=1.7',
         'affine',
-        'gpsdio>0.0.2'
+        'gpsdio>=0.0.2'
     ],
     keywords='AIS GIS remote sensing raster',
     license=license,
