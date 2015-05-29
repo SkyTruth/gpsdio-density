@@ -197,8 +197,8 @@ def compute_density(ctx, infiles, outfile, creation_options, driver, jobs, bbox,
         height = math.ceil((y_max - y_min) / y_res)
     elif shape and not res:
         height, width = shape
-        x_res = (x_max - x_min) / height
-        y_res = (y_max - y_min) / width
+        x_res = (x_max - x_min) / width
+        y_res = (y_max - y_min) / height
     else:
         raise click.BadParameter('must specify `--res` OR `--shape`')
 
@@ -222,6 +222,7 @@ def compute_density(ctx, infiles, outfile, creation_options, driver, jobs, bbox,
     output = sum((a for a in Pool(jobs).map(_processor, ((fp, meta) for fp in infiles))))
 
     meta['affine'] = affine.Affine(*affine_elements)
+    meta['transform'] = rio.guard_transform(meta['affine'])
     with rio.open(outfile, 'w', **meta) as dst:
         dst.write(output.astype(dst.meta['dtype']), indexes=1)
 
