@@ -6,9 +6,8 @@ Unittests for `gpsdio_density.core`.
 import tempfile
 
 from click.testing import CliRunner
+import gpsdio.cli
 import rasterio as rio
-
-import gpsdio_density.core
 
 
 def test_standard_with_res_and_shape():
@@ -17,6 +16,8 @@ def test_standard_with_res_and_shape():
         for res_shape in (['--res', '10'], ['--shape', '18', '36']):
             f.seek(0)
             args = [
+                '--i-drv', 'NewlineJSON',
+                'density',
                 'tests/data/messages1.json',
                 'tests/data/messages2.json',
                 '-c', 'COMPRESS=DEFLATE',
@@ -28,7 +29,7 @@ def test_standard_with_res_and_shape():
                 f.name
             ]
             args += res_shape
-            result = CliRunner().invoke(gpsdio_density.core.compute_density, args)
+            result = CliRunner().invoke(gpsdio.cli.main.main_group, args)
             f.seek(0)
 
             assert result.exit_code is 0
