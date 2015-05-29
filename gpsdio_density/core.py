@@ -248,10 +248,11 @@ def compute_density(ctx, infiles, outfile, creation_options, driver, jobs, bbox,
         try:
             pickle.dumps(ctxobj)
         except pickle.PicklingError:
-            log.warning("Parent click `ctx.obj` cannot be pickled - passing an empty dict")
+            log.warning("Parent click `ctx.obj` cannot be pickled - passing an empty dict.  "
+                        "Some functionality may not be available.")
             ctxobj = {}
     else:
-        log.warning("Parent click `ctx.obj` is not a dictionary - some functionality may not "
+        log.warning("Parent click `ctx.obj` is not a dictionary.  Some functionality may not "
                     "be available")
         ctxobj = {}
 

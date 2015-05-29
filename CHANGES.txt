@@ -1,6 +1,13 @@
 Changes
 =======
 
+0.0.1 (2015-05-29)
+------------------
+
+gpsdio I/O args are now passed to `gpsdio.open()` - #4
+CRS info is now properly applied to the output raster - #3
+
+
 0.1 (2015-05-28)
 ----------------
 
