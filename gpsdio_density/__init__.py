@@ -6,7 +6,7 @@ Non-positional messages are automatically ignored.
 """
 
 
-__version__ = '0.1'
+__version__ = '0.1.1'
 __author__ = 'Kevin Wurster'
 __email__ = 'kevin@skytruth.org'
 __source__ = 'https://github.com/SkyTruth/gpsdio-density'
