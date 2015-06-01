@@ -257,7 +257,7 @@ def compute_density(ctx, infiles, outfile, creation_options, driver, jobs, bbox,
         ctxobj = {}
 
     output = sum(
-        (a for a in Pool(jobs).map(_processor, ((ctxobj, fp, meta) for fp in infiles))))
+        (a for a in Pool(jobs).imap_unordered(_processor, ((ctxobj, fp, meta) for fp in infiles))))
 
     log.debug("Processing complete.  Dumping to file.")
 
