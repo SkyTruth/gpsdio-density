@@ -9,6 +9,8 @@ from click.testing import CliRunner
 import gpsdio.cli
 import rasterio as rio
 
+import gpsdio_density
+
 
 def test_standard_with_res_and_shape():
 
@@ -75,3 +77,14 @@ def test_with_field():
             assert actual.meta == expected.meta
             assert actual.read(indexes=1).all() * 2 == expected.read(indexes=1).all()
             assert expected.bounds == actual.bounds == (-180, -90, 180, 90)
+
+
+def test_version():
+    result = CliRunner().invoke(gpsdio.cli.main.main_group, [
+        'density',
+        '--version'
+    ])
+
+    assert result.exit_code is 0
+
+    assert 'gpsdio-density' in result.output and gpsdio_density.__version__ in result.output

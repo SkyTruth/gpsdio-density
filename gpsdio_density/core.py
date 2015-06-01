@@ -17,6 +17,8 @@ import gpsdio
 import numpy as np
 import rasterio as rio
 
+from . import __version__
+
 
 logging.basicConfig()
 log = logging.getLogger('gpsdio-density')
@@ -168,6 +170,7 @@ def _processor(args):
 
 
 @click.command(name='density')
+@click.version_option(__version__, prog_name='gpsdio-density')
 @click.argument('infiles', nargs=-1, required=True)
 @click.argument('outfile', required=True)
 @click.option(
