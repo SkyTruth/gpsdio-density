@@ -19,10 +19,9 @@ def test_standard_with_res_and_shape():
             f.seek(0)
             args = [
                 '--i-drv', 'NewlineJSON',
-                '--i-cmp', 'GZIP',
                 'density',
-                'tests/data/messages1.json.gz',
-                'tests/data/messages2.json.gz',
+                'tests/data/messages1.json',
+                'tests/data/messages2.json',
                 '-c', 'COMPRESS=DEFLATE',
                 '-c', 'PREDICTOR=2',
                 '-c', 'ZLEVEL=9',
@@ -54,8 +53,8 @@ def test_with_field():
     with tempfile.NamedTemporaryFile('r+') as f:
         result = CliRunner().invoke(gpsdio.cli.main.main_group, [
             'density',
-            'tests/data/messages1.json.gz',
-            'tests/data/messages2.json.gz',
+            'tests/data/messages1.json',
+            'tests/data/messages2.json',
             '--res', '10',
             '--field', 'val',
             '--dtype', 'Int16',
