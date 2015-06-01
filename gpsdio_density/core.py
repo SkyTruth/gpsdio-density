@@ -249,7 +249,7 @@ def compute_density(ctx, infiles, outfile, creation_options, driver, jobs, bbox,
     # an exception when it is re-constructed after passing through
     # multiprocessing
     affine_elements = (x_res, 0.0, x_min, 0.0, -y_res, y_max)
-    meta = {
+    process_meta = {
         'driver': driver,
         'height': height,
         'width': width,
@@ -259,7 +259,7 @@ def compute_density(ctx, infiles, outfile, creation_options, driver, jobs, bbox,
         'nodata': nodata,
         'count': 1
     }
-    meta.update(**creation_options)
+    process_meta.update(**creation_options)
 
     # Click's `ctx` object is an instance of `click.Context()` which cannot immediately
     # be pickled, which means it cannot be directly passed to the subprocess.
@@ -288,17 +288,17 @@ def compute_density(ctx, infiles, outfile, creation_options, driver, jobs, bbox,
         {
             'ctx_obj': ctx_obj,
             'filepath': fp,
-            'meta': meta,
+            'meta': process_meta,
             'field': field
         } for fp in infiles)
 
-    output = sum(
-        (a for a in Pool(jobs).imap_unordered(_processor, task_generator)))
-
-    log.debug("Processing complete.  Dumping to file.")
-
-    meta['transform'] = affine.Affine(*affine_elements)
+    meta = process_meta.copy()
+    meta['transform'] = affine.Affine(*meta['transform'])
     with rio.open(outfile, 'w', **meta) as dst:
+
+        output = sum(
+            (a for a in Pool(jobs).imap_unordered(_processor, task_generator)))
+
         dst.write(output.astype(dst.meta['dtype']), indexes=1)
 
 
