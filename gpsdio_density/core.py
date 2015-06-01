@@ -17,6 +17,8 @@ import gpsdio
 import numpy as np
 import rasterio as rio
 
+from . import __version__
+
 
 logging.basicConfig()
 log = logging.getLogger('gpsdio-density')
@@ -105,7 +107,7 @@ def _cb_shape(ctx, param, value):
     return value
 
 
-def _processor(ctxobj_filepath_meta):
+def _processor(args):
 
     """
     Create an empty numpy array, open a file, and iterate over all the messages
@@ -114,41 +116,61 @@ def _processor(ctxobj_filepath_meta):
 
     Parameters
     ----------
-    ctxobj_filepath_meta : tuple
-        Consisting of three elements:
-            0. An empty dictionary or `ctx.obj` if it is a picklable dictionary.
-            1. Path to the file to process
-            2. Metadata for a `rasterio` raster.  There are issues pickling
-               `affine.Affine()` so `meta['affine']` are the affine elements
-               as a tuple and a local instance of `affine.Affine()` is
-               constructed before processing
+    args : dict
+        ctx_obj : dict
+            The `ctx.obj` from the parent Click context if it is a dictionary,
+            or an empty dict.
+        filepath : str
+            Path to the file to process.
+        meta : dict
+            Metadata for a `rasterio` raster.  There are issues pickling
+            `affine.Affine()` so `meta['transform']` are the affine elements
+            as a tuple and a local instance of `affine.Affine()` is
+            constructed before processing.
+        field : str or None
+            If summing a field rather than computing density this is the field name.
 
     Returns
     -------
     np.array
     """
 
-    ctxobj, filepath, meta = ctxobj_filepath_meta
+    ctx_obj = args['ctx_obj']
+    filepath = args['filepath']
+    meta = args['meta']
+    field = args['field']
+
+    filter_expr = "isinstance(msg.get('lat'), (int, float)) and " \
+                  "isinstance(msg.get('lon'), (int, float))"
+
+    if field is not None:
+        filter_expr += " and '%s' in msg" % field
 
     log.debug("Starting %s" % filepath)
+    log.debug("Filter expr: %s" % filter_expr)
 
     data = np.zeros((meta['height'], meta['width']), dtype=meta['dtype'])
-    aff = affine.Affine(*meta['affine'])
+    aff = affine.Affine(*meta['transform'])
     width = meta['width']
     height = meta['height']
-    with gpsdio.open(filepath, driver=ctxobj.get('i_drv'),
-                     compression=ctxobj.get('i_cmp')) as src:
+    with gpsdio.open(filepath, driver=ctx_obj.get('i_drv'),
+                     compression=ctx_obj.get('i_cmp')) as src:
         for msg in gpsdio.filter(
                 src, "isinstance(msg.get('lat'), (int, float)) and "
                      "isinstance(msg.get('lon'), (int, float))"):
             col, row = (msg['lon'], msg['lat']) * ~aff
             if 0 <= row < height and 0 <= col < width:
-                data[row][col] += 1
+                if field is not None:
+                    val = msg[field]
+                else:
+                    val = 1
+                data[row][col] += val
 
     return data
 
 
 @click.command(name='density')
+@click.version_option(__version__, prog_name='gpsdio-density')
 @click.argument('infiles', nargs=-1, required=True)
 @click.argument('outfile', required=True)
 @click.option(
@@ -184,16 +206,22 @@ def _processor(ctxobj_filepath_meta):
 )
 @click.option(
     '--crs', default='EPSG:4326',
-    help="Specify CRS for input points and output raster.  No transformations are performed.  "
+    help="Specify CRS for input points and output raster.  No transformations are performed. "
          "(default: EPSG:4326)"
 )
 @click.option(
     '--dtype', default=rio.int32, metavar='TYPE',
     help="Numpy datatype to use for output raster.  (default: int32)"
 )
+@click.option(
+    '--field', metavar='NAME',
+    help="Rather than computing density, sum a field.  Each point that intersects a pixel "
+         "will add the value of the specified field instead of just adding 1.  Make sure "
+         "to match field type with `--dtype`."
+)
 @click.pass_context
 def compute_density(ctx, infiles, outfile, creation_options, driver, jobs, bbox,
-              shape, res, crs, dtype, nodata):
+              shape, res, crs, dtype, nodata, field):
 
     """
     Create a density raster from positional messages.
@@ -225,7 +253,7 @@ def compute_density(ctx, infiles, outfile, creation_options, driver, jobs, bbox,
         'driver': driver,
         'height': height,
         'width': width,
-        'affine': affine_elements,
+        'transform': affine_elements,
         'crs': crs,
         'dtype': dtype,
         'nodata': nodata,
@@ -244,25 +272,32 @@ def compute_density(ctx, infiles, outfile, creation_options, driver, jobs, bbox,
     # These checks are required because the user may be attaching this plugin
     # to some CLI that doesn't behave like gpsdio.
     if isinstance(ctx.obj, dict):
-        ctxobj = ctx.obj.copy()
+        ctx_obj = ctx.obj.copy()
         try:
-            pickle.dumps(ctxobj)
+            pickle.dumps(ctx_obj)
         except pickle.PicklingError:
             log.warning("Parent click `ctx.obj` cannot be pickled - passing an empty dict.  "
                         "Some functionality may not be available.")
-            ctxobj = {}
+            ctx_obj = {}
     else:
         log.warning("Parent click `ctx.obj` is not a dictionary.  Some functionality may not "
                     "be available")
-        ctxobj = {}
+        ctx_obj = {}
+
+    task_generator = (
+        {
+            'ctx_obj': ctx_obj,
+            'filepath': fp,
+            'meta': meta,
+            'field': field
+        } for fp in infiles)
 
     output = sum(
-        (a for a in Pool(jobs).imap_unordered(_processor, ((ctxobj, fp, meta) for fp in infiles))))
+        (a for a in Pool(jobs).imap_unordered(_processor, task_generator)))
 
     log.debug("Processing complete.  Dumping to file.")
 
-    meta['affine'] = affine.Affine(*affine_elements)
-    meta['transform'] = rio.guard_transform(meta['affine'])
+    meta['transform'] = affine.Affine(*affine_elements)
     with rio.open(outfile, 'w', **meta) as dst:
         dst.write(output.astype(dst.meta['dtype']), indexes=1)
 
