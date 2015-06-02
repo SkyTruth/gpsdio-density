@@ -66,7 +66,7 @@ setup_args = dict(
         'rasterio>=0.18',
         'click>=3.0',
         'Numpy>=1.7',
-        'affine',
+        'affine>=1.2',
         'gpsdio>=0.0.2'
     ],
     keywords='AIS GIS remote sensing raster',

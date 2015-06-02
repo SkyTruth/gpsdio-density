@@ -150,9 +150,9 @@ def _processor(args):
     log.debug("Filter expr: %s" % filter_expr)
 
     data = np.zeros((meta['height'], meta['width']), dtype=meta['dtype'])
-    aff = affine.Affine(*meta['transform'])
     width = meta['width']
     height = meta['height']
+    aff = meta['transform']
     with gpsdio.open(filepath, driver=ctx_obj.get('i_drv'),
                      compression=ctx_obj.get('i_cmp')) as src:
         for msg in gpsdio.filter(
@@ -244,22 +244,17 @@ def compute_density(ctx, infiles, outfile, creation_options, driver, jobs, bbox,
     else:
         raise click.BadParameter('must specify `--res` OR `--shape`')
 
-    # Note that the affine elements are stored as a tuple rather than
-    # an instance of affine.Affine().  For some reason affine raises
-    # an exception when it is re-constructed after passing through
-    # multiprocessing
-    affine_elements = (x_res, 0.0, x_min, 0.0, -y_res, y_max)
-    process_meta = {
+    meta = {
         'driver': driver,
         'height': height,
         'width': width,
-        'transform': affine_elements,
+        'transform': affine.Affine(x_res, 0.0, x_min, 0.0, -y_res, y_max),
         'crs': crs,
         'dtype': dtype,
         'nodata': nodata,
         'count': 1
     }
-    process_meta.update(**creation_options)
+    meta.update(**creation_options)
 
     # Click's `ctx` object is an instance of `click.Context()` which cannot immediately
     # be pickled, which means it cannot be directly passed to the subprocess.
@@ -288,12 +283,10 @@ def compute_density(ctx, infiles, outfile, creation_options, driver, jobs, bbox,
         {
             'ctx_obj': ctx_obj,
             'filepath': fp,
-            'meta': process_meta,
+            'meta': meta,
             'field': field
         } for fp in infiles)
 
-    meta = process_meta.copy()
-    meta['transform'] = affine.Affine(*meta['transform'])
     with rio.open(outfile, 'w', **meta) as dst:
 
         output = sum(
