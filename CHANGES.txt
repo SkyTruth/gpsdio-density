@@ -1,7 +1,7 @@
 Changes
 =======
 
-0.2 (2015-06-01)
+0.2 (2015-06-09)
 ----------------
 
 User can now sum a field instead of just computing density - #5.
