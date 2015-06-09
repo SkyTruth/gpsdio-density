@@ -9,7 +9,6 @@ import logging
 import math
 from multiprocessing import cpu_count
 from multiprocessing import Pool
-import pickle
 
 import affine
 import click
@@ -231,6 +230,8 @@ def compute_density(ctx, infiles, outfile, creation_options, driver, jobs, bbox,
     allows for a smaller cell size but does not allow for global rasters.
     """
 
+    log.setLevel(ctx.obj['verbosity'])
+
     x_min, y_min, x_max, y_max = bbox
 
     if res and not shape:
@@ -256,32 +257,16 @@ def compute_density(ctx, infiles, outfile, creation_options, driver, jobs, bbox,
     }
     meta.update(**creation_options)
 
-    # Click's `ctx` object is an instance of `click.Context()` which cannot immediately
-    # be pickled, which means it cannot be directly passed to the subprocess.
-    # The following does the following:
-    #
-    #   1. If `ctx.obj` is a dict that is pickleable, pass it as is
-    #   2. If `ctx.obj` is a dict that IS NOT picklable, just pass an empty dict
-    #   3. If `ctx.obj` is NOT a dict, just pass an empty dict.
-    #
-    # These checks are required because the user may be attaching this plugin
-    # to some CLI that doesn't behave like gpsdio.
-    if isinstance(ctx.obj, dict):
-        ctx_obj = ctx.obj.copy()
-        try:
-            pickle.dumps(ctx_obj)
-        except pickle.PicklingError:
-            log.warning("Parent click `ctx.obj` cannot be pickled - passing an empty dict.  "
-                        "Some functionality may not be available.")
-            ctx_obj = {}
-    else:
-        log.warning("Parent click `ctx.obj` is not a dictionary.  Some functionality may not "
-                    "be available")
-        ctx_obj = {}
+    open_options = {
+        'i_drv': ctx.obj['i_drv'],
+        'i_cmp': ctx.obj['i_cmp'],
+        'i_drv_opts': ctx.obj['i_drv_opts'],
+        'i_cmp_opts': ctx.obj['i_cmp_opts']
+    }
 
     task_generator = (
         {
-            'ctx_obj': ctx_obj,
+            'ctx_obj': open_options,
             'filepath': fp,
             'meta': meta,
             'field': field

@@ -36,7 +36,7 @@ with open(os.path.join('gpsdio_density', '__init__.py')) as f:
             break
 
 
-setup_args = dict(
+setup(
     author=author,
     author_email=email,
     classifiers=[
@@ -67,7 +67,7 @@ setup_args = dict(
         'click>=3.0',
         'Numpy>=1.7',
         'affine>=1.2',
-        'gpsdio>=0.0.2'
+        'gpsdio>=0.0.4'
     ],
     keywords='AIS GIS remote sensing raster',
     license=license,
@@ -78,6 +78,3 @@ setup_args = dict(
     version=version,
     zip_safe=True
 )
-
-
-setup(**setup_args)
